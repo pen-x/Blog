@@ -1,10 +1,12 @@
 ---
 title: 搭建 Hexo 部署服务器
-tags: 
-    - Hexo 
-    - Git 
-    - Nginx
+tags:
+  - Hexo
+  - Git
+  - Nginx
+date: 2018-08-31 13:33:46
 ---
+
 
 ## 前言
 
