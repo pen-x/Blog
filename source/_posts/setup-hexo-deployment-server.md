@@ -338,3 +338,4 @@ INFO  Deploy done: git
 
 - [Searene: Set Up A Git Server To Deploy With Hexo](http://searene.me/2015/12/05/set-up-a-git-server-to-deploy-with-hexo/)
 - [阮一峰: SSH原理与运用（一）：远程登录](http://www.ruanyifeng.com/blog/2011/12/ssh_remote_login.html)
+- [Troubleshoot Nginx: 10 typical errors](https://blog.serverdensity.com/troubleshoot-nginx/)
