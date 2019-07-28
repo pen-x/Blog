@@ -158,6 +158,8 @@ In [1]: df.loc['a', 'A']
 Out[1]: 0.8418070411036316
 ```
 
+TODO: 此处添加切片超出范围时的处理
+
 ## iloc 方法
 
 iloc 方法是**纯基于位置**的索引方法，和 python 类似。可以是以下：
@@ -230,6 +232,8 @@ Out[1]:
 6 -0.187173 -0.184766
 8 -0.770139  1.683957
 ```
+
+TODO：如果有索引不存在，会抛出异常
 
 ```python
 In [1]: df.iloc[[1, 3, 5], [1, 3]]
@@ -308,4 +312,161 @@ Out[1]: 1
 
 ## 索引运算 []
 
-## 属性运算
+Pandas 也支持 python 标准的索引运算 []（即调用 __getitem() 内置方法），
+
+Object Type	Selection	Return Value Type
+Series	series[label]	scalar value
+DataFrame	frame[colname]	Series corresponding to colname
+
+利用标签的切片运算与普通的Python切片运算不同，其末端是包含的：
+
+```python
+In [1]: s = pd.Series(np.arange(4.), index=['a', 'b', 'c', 'd'])
+
+In [1]: print(s)
+Out[1]: 
+a    0.0
+b    1.0
+c    2.0
+d    3.0
+dtype: float64
+```
+
+```python
+In [1]: s['b']
+In [1]: 1.0
+
+In [1]: s[1]
+In [1]: 1.0
+
+In [1]: s[2: 4]
+In [1]: 
+c    2.0
+d    3.0
+dtype: float64
+
+In [1]: s[['b', 'a', 'd']]
+In [1]: 
+b    1.0
+a    0.0
+d    3.0
+dtype: float64
+
+In [1]: s[[1, 3]]
+In [1]: 
+b    1.0
+d    3.0
+dtype: float64
+
+In [1]: s[s < 2]
+In [1]: 
+a    0.0
+b    1.0
+dtype: float64
+
+In [1]: s['b': 'c']
+In [1]: 
+b    1.0
+c    2.0
+dtype: float64
+```
+
+```python
+In [1]: df = pd.DataFrame(np.arange(16).reshape((4, 4)), 
+                        index=['Ohio', 'Colorado', 'Utah', 'New York'], 
+                        columns=['one', 'two', 'three', 'four'])
+
+In [1]: print(df)
+Out[1]: 
+          one  two  three  four
+Ohio        0    1      2     3
+Colorado    4    5      6     7
+Utah        8    9     10    11
+New York   12   13     14    15
+```
+
+```python
+In [1]: df['two']
+In [1]: 
+Ohio         1
+Colorado     5
+Utah         9
+New York    13
+Name: two, dtype: int32
+
+In [1]: df[['three', 'one']]
+In [1]: 
+          three  one
+Ohio          2    0
+Colorado      6    4
+Utah         10    8
+New York     14   12
+
+In [1]: 
+In [1]: 
+
+In [1]: 
+In [1]: 
+```
+
+行切片
+
+```python
+In [1]: df[: 2]
+In [1]: 
+          one  two  three  four
+Ohio        0    1      2     3
+Colorado    4    5      6     7
+```
+
+布尔数组
+
+```python
+In [1]: df[df['three'] > 5
+In [1]: 
+          one  two  three  four
+Colorado    4    5      6     7
+Utah        8    9     10    11
+New York   12   13     14    15
+```
+
+布尔型 DataFrame
+
+```python
+In [1]: df < 5
+In [1]: 
+            one    two  three   four
+Ohio       True   True   True   True
+Colorado   True  False  False  False
+Utah      False  False  False  False
+New York  False  False  False  False
+
+In [1]: df[df < 5]
+In [1]: 
+          one  two  three  four
+Ohio      0.0  1.0    2.0   3.0
+Colorado  4.0  NaN    NaN   NaN
+Utah      NaN  NaN    NaN   NaN
+New York  NaN  NaN    NaN   NaN
+```
+
+## 属性运算 .
+
+Pandas 支持使用属性运算 . 来直接访问 Series 的索引或 DataFram 的列。
+
+You can use this access only if the index element is a valid Python identifier, e.g. s.1 is not allowed. See here for an explanation of valid identifiers.
+The attribute will not be available if it conflicts with an existing method name, e.g. s.min is not allowed.
+Similarly, the attribute will not be available if it conflicts with any of the following list: index, major_axis, minor_axis, items.
+In any of these cases, standard indexing will still work, e.g. s['1'], s['min'], and s['index'] will access the corresponding element or column.
+
+```python
+In [1]: s.b
+In [1]: 1.0
+
+In [1]: df.two
+In [1]: Ohio         1
+Colorado     5
+Utah         9
+New York    13
+Name: two, dtype: int32
+```
