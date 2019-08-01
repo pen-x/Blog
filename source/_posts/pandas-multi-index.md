@@ -8,7 +8,7 @@ toc: false
 
 层次化索引（Hierarchical / Multi-level Indexing）是pandas的一项重要功能，它使你能在一个轴上拥有多个（两个以上）索引级别。抽象点说，它使你能以低维度形式处理高维度数据。
 
-以下图为例，这里有两个索引级别，level 0 表示第一个索引级别，level 1 表示第二个索引级别。结合各个索引级别上的标签则可以构成一个索引项，例如 ('bar', 'one')、('foo', 'two') 等。
+以下图为例，这里有两个索引级别，level 0 表示第一个索引级别，level 1 表示第二个索引级别。组合各个索引级别上的标签则可以构成一个索引项，例如 ('bar', 'one')、('foo', 'two') 等。
 
 ![](/images/pandas-multi-index.png)
 
@@ -17,8 +17,8 @@ toc: false
 层次化索引的类型是 pandas.MultiIndex，它继承自 pandas.Index，有如下一些基本属性：
 
 - **names**: 索引中各级别的名称，各级别名称的默认值是 None。
-- **levels**: 标签数组，表示各级别的唯一标签。在上面的例子中，第一个级别有 'bar'、'baz'、'foo'、'qux' 4 种标签，第二个级别只有 'one' 和 'two' 两种标签，因此 levels 的值是 [['bar', 'baz', 'foo', 'qux'], ['one', 'two']]。
-- **codes**: 整数数组，和 levels 配合使用，数组的每一项代表索引一个级别的全部取值。由于都是整数，它们代表在标签数组中的坐标。例如 [0, 0, 1, 1, 2, 2, 3, 3] 代表第一级索引标签为 ['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux']。
+- **levels**: 标签列表，表示各级别的**唯一标签**。在上面的例子中，第一个级别有 'bar'、'baz'、'foo'、'qux' 4 种标签，第二个级别只有 'one' 和 'two' 两种标签，因此 levels 的值是 [['bar', 'baz', 'foo', 'qux'], ['one', 'two']]。
+- **codes**: 编码列表，表示索引各级别的编码值，编码值是一个整数，代表在标签列表中的位置，和 levels 配合生效。例如第一个级别的标签列表为 ['bar', 'baz', 'foo', 'qux']，那么编码列表 [0, 0, 1, 1, 2, 2, 3, 3] 代表这个界别的索引标签为 ['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux']。
 - nlevels: 索引的总级别数。
 - levshape: 索引中各级别标签的数目。
 
@@ -52,12 +52,12 @@ Out[8]: (4, 2)
 
 有多种创建 MultiIndex 的方式，分别包括：
 
-- MultiIndex.from_arrays()：通过数组列表创建层次化索引，每个数组代表一个索引级别上的标签取值。
-- MultiIndex.from_tuples()：通过元组列表创建层次化索引，每个元组代表一个索引项，即当前索引项在各个索引级别上的取值。
-- MultiIndex.from_product()：通过元素的乘积创建层次化索引，。
-- MultiIndex.from_frame()：通过 DataFrame 创建层次化索引。
+- MultiIndex.from_arrays()：通过标签数组创建层次化索引，每个数组代表一个索引级别上的标签。
+- MultiIndex.from_tuples()：通过元组列表创建层次化索引，每个元组代表一个索引项，即当前索引项在各个索引级别上的标签值。
+- MultiIndex.from_product()：通过各级别标签的笛卡尔积创建层次化索引。
+- MultiIndex.from_frame()：通过 DataFrame 对象创建层次化索引。
 
-这些方法都可以接受一个 **names** 参数来指定索引各级别的名字，如不指定，则默认为 None。
+这些方法都可以接受一个 **names** 参数来指定索引各级别的名字，如不指定，则为默认值 None。
 
 通过数组列表创建时，要求各数组的长度一致：
 
@@ -311,7 +311,7 @@ baz   one     1.735876 -0.429916  0.325410
       two     1.728114 -2.251222  0.930528
 ```
 
-进行部分索引时，可以使用简略的写法，效果时一样的：
+进行部分索引时，可以使用简略的写法，效果是一样的：
 
 ```python
 In [1]: df.loc['bar']
