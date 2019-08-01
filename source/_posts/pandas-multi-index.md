@@ -115,8 +115,9 @@ In [1]: df = pd.DataFrame([['bar', 'one'], ['bar', 'two'],
                    ['foo', 'one'], ['foo', 'two']],
                   columns=['first', 'second'])
 
-In [2]: pd.MultiIndex.from_frame(df)
-Out[2]: 
+In [2]: index = pd.MultiIndex.from_frame(df)
+In [3]: index
+Out[3]: 
 MultiIndex(levels=[['bar', 'foo'], ['one', 'two']],
            codes=[[0, 0, 1, 1], [0, 1, 0, 1]],
            names=['first', 'second'])
@@ -202,53 +203,172 @@ dtype: float64
 
 ## 检索层次化索引
 
-层次化索引的一个重要特性就是**部分索引**，即只提供索引的部分标签，选取包含该标签的全部层次化索引。
+和普通索引一样，层次化索引可以通过 iloc 方法进行基于位置的检索、通过 loc 方法进行基于轴标签的检索。其中 loc 方法的输入参数略有不同，需要用标签元组来替代单个轴标签：
 
 ```python
-In [1]: df = pd.DataFrame(np.random.randn(3, 8), index=['A', 'B', 'C'], columns=index)
+In [1]: df = df.T
 In [2]: df
-Out[2]: 
-first        bar                 baz                 foo                 qux          
-second       one       two       one       two       one       two       one       two
-A       0.895717  0.805244 -1.206412  2.565646  1.431256  1.340309 -1.170299 -0.226169
-B       0.410835  0.813850  0.132003 -0.827317 -0.076467 -1.187678  1.130127 -1.436737
-C      -1.413681  1.607920  1.024180  0.569605  0.875906 -2.211372  0.974466 -2.006747
+Out[2]:
+                     A         B         C
+first second                              
+bar   one    -0.155753 -0.655474  0.243651
+      two     0.013189 -0.599820 -0.447043
+baz   one     1.735876 -0.429916  0.325410
+      two     1.728114 -2.251222  0.930528
+foo   one     1.245292 -0.442700 -0.585784
+      two     1.358895  0.854176 -1.289802
+qux   one    -1.503507  0.737687  1.673752
+      two    -2.085532  1.124874 -0.325829
 
-In [1]: df['bar']
-Out[1]: 
-        one       two
-A -0.253498  0.224826
-B  2.025727  0.295492
-C  0.186436 -0.678404
-
-In [1]: df['bar', 'one']
-Out[1]: 
-A   -2.622886
-B    0.780131
-C    0.940327
-Name: (bar, one), dtype: float64
-
-In [1]: df['bar']['one']
-Out[1]: 
-A   -2.622886
-B    0.780131
-C    0.940327
-Name: one, dtype: float64
-```
-
-更易于理解的检索可以通过 loc 方法来实现，与检索普通索引的不同之处在于，需要用标签元组来替代单个标签：
-
-```python
-In [1]: df.loc[('bar', 'two')]
-Out[1]: 
-A    0.098336
-B    1.001876
-C   -0.208750
+In [3: df.loc[('bar', 'two')]
+Out[3]:
+A    0.013189
+B   -0.599820
+C   -0.447043
 Name: (bar, two), dtype: float64
 
+In [4]: df.loc[[('bar', 'two'), ('qux', 'one')]]
+Out[4]:
+                     A         B         C
+first second                              
+bar   two     0.013189 -0.599820 -0.447043
+qux   one    -1.503507  0.737687  1.673752
+
+In [5]: df.loc[('baz', 'two'):('qux', 'one')]
+Out[5]:
+                     A         B         C
+first second                              
+baz   two     1.728114 -2.251222  0.930528
+foo   one     1.245292 -0.442700 -0.585784
+      two     1.358895  0.854176 -1.289802
+qux   one    -1.503507  0.737687  1.673752
+
+In [6]: df['A'] > 0
+Out[6]:
+first  second
+bar    one       False
+       two        True
+baz    one        True
+       two        True
+foo    one        True
+       two        True
+qux    one       False
+       two       False
+Name: A, dtype: bool
+
+In [7]: df.loc[df['A'] > 0]
+Out[7]:
+                     A         B         C
+first second                              
+bar   two     0.013189 -0.599820 -0.447043
+baz   one     1.735876 -0.429916  0.325410
+      two     1.728114 -2.251222  0.930528
+foo   one     1.245292 -0.442700 -0.585784
+      two     1.358895  0.854176 -1.289802
+```
+
+同时对行、列进行索引的方法也类似：
+
+```python
 In [1]: df.loc[('bar', 'two'), 'A']
 Out[1]: 0.09833600046171068
 
-In [1]: df.loc[('bar',),]
-Out[1]: 
+In [2]: df.loc[('bar', 'two'): ('foo', 'one'), 'A']
+Out[2]:
+first  second
+bar    two       0.013189
+baz    one       1.735876
+       two       1.728114
+foo    one       1.245292
+Name: A, dtype: float64
+```
+
+层次化索引的一个重要特性就是**部分索引**，即只提供索引的部分标签，选取包含该标签的全部层次化索引：
+
+```python
+In [1]: df.loc[('bar',)]
+Out[1]:
+               A         B         C
+second                              
+one    -0.155753 -0.655474  0.243651
+two     0.013189 -0.599820 -0.447043
+
+In [2]: df.loc[('bar', 'two'): ('baz',)]
+Out[2]:
+                     A         B         C
+first second                              
+bar   two     0.013189 -0.599820 -0.447043
+baz   one     1.735876 -0.429916  0.325410
+      two     1.728114 -2.251222  0.930528
+
+In [3]: df.loc[('bar',): ('baz',)]
+Out[3]:
+                     A         B         C
+first second                              
+bar   one    -0.155753 -0.655474  0.243651
+      two     0.013189 -0.599820 -0.447043
+baz   one     1.735876 -0.429916  0.325410
+      two     1.728114 -2.251222  0.930528
+```
+
+进行部分索引时，可以使用简略的写法，效果时一样的：
+
+```python
+In [1]: df.loc['bar']
+Out[1]:
+               A         B         C
+second                              
+one    -0.155753 -0.655474  0.243651
+two     0.013189 -0.599820 -0.447043
+
+In [2]: df.loc[('bar', 'two'): 'baz']
+Out[2]:
+                     A         B         C
+first second                              
+bar   two     0.013189 -0.599820 -0.447043
+baz   one     1.735876 -0.429916  0.325410
+      two     1.728114 -2.251222  0.930528
+
+In [3]: df.loc['bar': 'baz']
+Out[3]:
+                     A         B         C
+first second                              
+bar   one    -0.155753 -0.655474  0.243651
+      two     0.013189 -0.599820 -0.447043
+baz   one     1.735876 -0.429916  0.325410
+      two     1.728114 -2.251222  0.930528
+```
+
+索引运算符 [] 也支持简单的部分索引：
+
+```python
+In [1]: df = df.T
+In [2]: df
+Out[2]:
+first        bar                 baz                 foo                 qux          
+second       one       two       one       two       one       two       one       two
+A      -0.155753  0.013189  1.735876  1.728114  1.245292  1.358895 -1.503507 -2.085532
+B      -0.655474 -0.599820 -0.429916 -2.251222 -0.442700  0.854176  0.737687  1.124874
+C       0.243651 -0.447043  0.325410  0.930528 -0.585784 -1.289802  1.673752 -0.325829
+
+In [3]: df['bar']
+Out[3]:
+second       one       two
+A      -0.155753  0.013189
+B      -0.655474 -0.599820
+C       0.243651 -0.447043
+
+In [4]: df['bar', 'one']
+Out[4]:
+A   -0.155753
+B   -0.655474
+C    0.243651
+Name: (bar, one), dtype: float64
+
+In [5]: df['bar']['one']
+Out[5]:
+A   -0.155753
+B   -0.655474
+C    0.243651
+Name: one, dtype: float64
 ```
