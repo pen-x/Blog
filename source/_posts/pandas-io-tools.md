@@ -3,6 +3,7 @@ title: Pandas IO 工具
 date: 2019-07-23 16:26:52
 tags:
   - pandas
+toc: true
 ---
 
 Pandas 提供了很多用于将表格型数据读取为 DataFrame 对象的函数，下表列举出了其中一些常用的函数及其说明。其中一些函数，比如pandas.read_csv，有类型推断功能，因为列数据的类型不属于数据类型。也就是说，你不需要指定列的类型到底是数值、整数、布尔值，还是字符串。其它的数据格式，如 HDF5、Feather 和 msgpack，会在格式中存储数据类型。

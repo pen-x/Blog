@@ -1,5 +1,5 @@
 ---
-title: pandas 层次化索引
+title: Pandas 层次化索引
 date: 2019-07-29 20:31:09
 tags:
   - pandas

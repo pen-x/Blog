@@ -1,5 +1,5 @@
 ---
-title: pandas 索引方法
+title: Pandas 索引方法
 date: 2019-07-27 01:26:19
 tags:
   - pandas

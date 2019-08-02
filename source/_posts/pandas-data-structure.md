@@ -3,6 +3,7 @@ title: Pandas 数据结构
 date: 2019-07-17 17:29:03
 tags:
   - pandas
+toc: true
 ---
 
 Pandas 中最基本的数据类型包括 Series、DataFrame 和 Index：
@@ -10,6 +11,8 @@ Pandas 中最基本的数据类型包括 Series、DataFrame 和 Index：
 - Series是一种类似于一维数组的对象，它由一组数据（各种NumPy数据类型）以及一组与之相关的数据标签（即索引）组成。
 - DataFrame是一个表格型的数据结构，它含有一组有序的列，每列可以是不同的值类型（数值、字符串、布尔值等），但同一列中的数据类型相同。DataFrame既有行索引也有列索引，它可以被看做由Series组成的字典（共用同一个索引）。DataFrame中的数据是以一个或多个二维块存放的（而不是列表、字典或别的一维数据结构）。
 - Index 对象负责管理轴标签和其他元数据（比如轴名称等）。构建Series或DataFrame时，所用到的任何数组或其他序列的标签都会被转换成一个Index。
+
+![](/images/pandas-data-structure.png)
 
 ## Series
 
@@ -380,4 +383,22 @@ In [1]: dup_labels = pd.Index(['foo', 'foo', 'bar', 'bar'])
 In [2]: print(dup_labels)
 Out[2]:
 Index(['foo', 'foo', 'bar', 'bar'], dtype='object')
+```
+
+可以手动设置 index 的 name：
+
+```python
+In [1]: df = pd.DataFrame([('parrot',   24.0, 'second'),
+                    ('lion',     80.5, 1),
+                    ('monkey', np.nan, None)], columns=('name', 'max_speed', 'rank'))
+        df.index.name = 'animal'
+        df.columns.name = 'property'
+
+In [2]: print(df)
+Out[2]:
+property    name  max_speed    rank
+animal                             
+0         parrot       24.0  second
+1           lion       80.5       1
+2         monkey        NaN    None
 ```
