@@ -5,11 +5,15 @@ tags:
   - pandas
 ---
 
-Pandas 提供了多种工具来宝珠我们方便地进行数据集合并，其中
+Pandas 提供了多种工具来帮助我们方便地进行数据集合并：
 
-## Concat 方法
+- **pandas.concat** 方法可以沿着一条轴将多个对象堆叠到一起。
+- **pandas.merge** 方法可以根据一个或多个键将不同 DataFrame 中的行连接起来，它实现的就是 SQL 或其他关系型数据库的 join 操作。
+- 实例方法 **combine_first** 可以将重复数据拼接在一起，用一个对象中的值填充另一个对象中的缺失值。
 
-concat() 方法是 pandas 命名空间下的一个方法，它可以将多个数据集（Series 或 DataFrame）沿着某个轴方向连接，并且在其它轴方向上进行集合操作（并集或交集）。
+## pandas.concat 方法
+
+concat 方法是 pandas 命名空间下的一个方法，它可以将多个数据集（Series 或 DataFrame）沿着某个轴方向连接，并且在其它轴方向上进行集合操作（并集或交集）。
 
 ```python
 pd.concat(objs, axis=0, join='outer', ignore_index=False, keys=None,
