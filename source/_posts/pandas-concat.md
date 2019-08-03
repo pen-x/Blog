@@ -20,16 +20,15 @@ pd.concat(objs, axis=0, join='outer', ignore_index=False, keys=None,
           levels=None, names=None, verify_integrity=False, copy=True)
 ```
 
-- objs: 参与连接的 pandas 对象（可以是 Series 或 DataFrame 对象）的列表或字典。如果是对象字典，则
-- axis: 指明连接的轴向，默认为 0，即沿着行方向连接
-- join: “inner” 或 “outer”，默认为 “outer”。指明其他轴（除了连接轴之外的轴）上的索引是按照交集（inner）还是并集（outer）进行合并。
-- ignore_index: 不保留连接轴上的索引，产生一组新索引 range(total_length)
-- keys: 与连接对象有关，用于形成连接轴向上的层次化索引。可以是任意值的列表或数组、元组数组、数组列表（如果将 levels 设置成多级数组的话）
-- levels: 指定用作层次化索引各级别上的索引，如果设置了 keys 的话
-- names: 用于创建分层级别的名称，如果设置了 keys 和（或) levels 的话
+- objs: 参与连接的 pandas 对象（可以是 Series 或 DataFrame 对象）的列表或字典。如果是对象字典，则字典的键与下面的 keys 效果类似。
+- axis: 指明连接的轴向，默认为 0，即沿着行方向合并。
+- join: “inner” 或 “outer”，默认为 “outer”。指明其他轴（除了连接轴之外的轴）上的轴标签是按照交集（inner）还是并集（outer）进行合并。
+- ignore_index: 不保留连接轴上的索引，产生一组新索引 0, 1, 2, ..., n - 1。当待连接的数据集索引没有实际意义时，可以设置此参数。
+- keys: 与连接对象有关，用于形成连接轴向上的层次化索引。可以是任意值的列表或数组、元组数组、数组列表（如果将 levels 设置成多级数组的话）。
+- levels: 指定用作层次化索引各级别上的索引，如果设置了 keys 的话。
+- names: 用于创建分层级别的名称，如果设置了 keys 和（或) levels 的话。
 - verify_integrity: 检查结果对象新轴上的重复情况，如果发现则引发异常。默认为 False 允许重复。
-- sort：
-- copy: 
+- copy: 默认为 True，如果设置为 False，则不会进行不必要的数据复制。
 
 下面是一个简单的例子，将三个 DataFrame 沿着行进行合并：
 
@@ -61,11 +60,11 @@ In [4]: result = pd.concat([df1, df2, df3])
 
 ```python
 In [1]: s3 = pd.Series([0, 1, 2, 3], name='foo')
-In [1]: s4 = pd.Series([0, 1, 2, 3])
-In [1]: s5 = pd.Series([0, 1, 4, 5])
+In [2]: s4 = pd.Series([0, 1, 2, 3])
+In [3]: s5 = pd.Series([0, 1, 4, 5])
 
-In [1]: pd.concat([s3, s4, s5], axis=1)
-Out[1]:
+In [4]: pd.concat([s3, s4, s5], axis=1)
+Out[4]:
    foo  0  1
 0    0  0  0
 1    1  1  1
@@ -156,19 +155,19 @@ In [1]: result = pd.concat({'x': df1, 'y': df2, 'z': df3}, keys=['y', 'z'])
 
 ```python
 In [1]: s3 = pd.Series([0, 1, 2, 3], name='foo')
-In [1]: s4 = pd.Series([0, 1, 2, 3])
-In [1]: s5 = pd.Series([0, 1, 4, 5])
+In [2]: s4 = pd.Series([0, 1, 2, 3])
+In [3]: s5 = pd.Series([0, 1, 4, 5])
 
-In [1]: pd.concat([s3, s4, s5], axis=1)
-Out[1]:
+In [4]: pd.concat([s3, s4, s5], axis=1)
+Out[4]:
    foo  0  1
 0    0  0  0
 1    1  1  1
 2    2  2  4
 3    3  3  5
 
-In [1]: pd.concat([s3, s4, s5], axis=1, keys=['red', 'blue', 'yellow'])
-Out[1]:
+In [5]: pd.concat([s3, s4, s5], axis=1, keys=['red', 'blue', 'yellow'])
+Out[5]:
    red  blue  yellow
 0    0     0       0
 1    1     1       1
@@ -202,7 +201,7 @@ In [1]: result = pd.concat([df1, df4], axis=1, join='inner')
 
 ![](/images/merging_concat_axis1_inner.png)
 
-### 其他设置
+### 索引设置
 
 如果想要自己设置层次化索引的信息，则可以综合使用 keys、levels 和 names 参数来实现：
 
@@ -221,6 +220,36 @@ MultiIndex(levels=[['z', 'y', 'x', 'w'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
 
 ![](/images/merging_concat_axis1.png)
 
-## Append 方法
+## append 方法
 
-## Combine_first 方法
+pandas.concat 方法有一个简化的版本，即 Series 或 DataFrame 实例对象的 append 方法。但是 append 方法只能沿着 axis=0 的轴进行合并，即沿着行进行数据合并，列标签采取并集的方式（对应 concat 方法中的 join='outer'）处理：
+
+```python
+In[1]: result = df1.append(df2)
+```
+
+![](/images/merging_append1.png)
+
+```python
+In[1]: result = df1.append(df4)
+```
+
+![](/images/merging_append2.png)
+
+append 方法可以同时接受多个待合并的数据集：
+
+```python
+In[1]: result = df1.append([df2, df3])
+```
+
+![](/images/merging_append3.png)
+
+还可以将向 DataFrame 中添加 Series 来增加新的行。需要注意的是，如果传入的 Series 对象没有名字，那么一定要设置 ignore_index=True，否则会抛出异常：
+
+```python
+In[1]: s2 = pd.Series(['X0', 'X1', 'X2', 'X3'], index=['A', 'B', 'C', 'D'])
+
+In[2]: result = df1.append(s2, ignore_index=True)
+```
+
+![](/images/merging_append_series_as_row.png)
