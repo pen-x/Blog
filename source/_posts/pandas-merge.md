@@ -164,7 +164,7 @@ Out[1]:
 3     2      NaN        2.0       right_only
 ```
 
-### 使用索引合并
+### 索引合并
 
 如果想要利用索引而不是某一列作为连接键进行合并，则可以利用 left_index 和 right_index 参数：
 
@@ -189,6 +189,10 @@ In [1]: pd.merge(left, right, left_index=True, right_index=True, how='inner')
 ![](/images/merging_merge_index_inner.png)
 
 当然，对于有名字的索引，设置 on 参数可以达到同样的效果：
+
+### 索引与列合并
+
+结合 left_on、right_index 或 left_index、right_on，就可以实现索引和列的合并：
 
 ```python
 In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2', 'A3'],
@@ -222,7 +226,9 @@ In [4]: pd.merge(left, right, left_on=['key1', 'key2'],
 
 ![](/images/merging_join_multikeys_inner.png)
 
-普通索引也可以和层次化索引合并：
+### 层次化索引合并
+
+单层索引和层次化索引合并的结果是
 
 ```python
 In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2'],
@@ -266,9 +272,31 @@ In [5]: pd.merge(left, right, left_index=True, right_index=True, how='inner')
 
 ### 混合 Index 和 Column
 
-传递给 on、left_on 和 right_on 的参数既可以是列名，也可以是行名，因此允许混合 Index 和 Column 合并：
+传递给 on、left_on 和 right_on 的参数既可以是列名，也可以是索引名，甚至是列名和索引名的组合，这就帮助我们省去了合并前重设索引的麻烦：
+
+```python
+left_index = pd.Index(['K0', 'K0', 'K1', 'K2'], name='key1')
+
+In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2', 'A3'],
+                             'B': ['B0', 'B1', 'B2', 'B3'],
+                             'key2': ['K0', 'K1', 'K0', 'K1']},
+                             index=left_index)
+
+In [2]: right_index = pd.Index(['K0', 'K1', 'K2', 'K2'], name='key1')
+
+In [3]: right = pd.DataFrame({'C': ['C0', 'C1', 'C2', 'C3'],
+                              'D': ['D0', 'D1', 'D2', 'D3'],
+                              'key2': ['K0', 'K0', 'K0', 'K1']},
+                              index=right_index) 
+
+In [4]: pd.merge(left, right, on=['key1', 'key2'])
+```
+
+![](/images/merge_on_index_and_column.png)
 
 ### 覆盖重复列名
+
+suffixes 参数可以接受一个字符串元组，用于追加到重叠列名的末尾：
 
 ```python
 In [1]: left = pd.DataFrame({'k': ['K0', 'K1', 'K2'], 'v': [1, 2, 3]})
@@ -278,21 +306,44 @@ In [2]: right = pd.DataFrame({'k': ['K0', 'K0', 'K3'], 'v': [4, 5, 6]})
 In [3]: pd.merge(left, right, on='k')
 ```
 
+![](/images/merging_merge_overlapped.png)
+
 ```python
 In [1]: pd.merge(left, right, on='k', suffixes=['_l', '_r'])
 ```
 
 ![](/images/merging_merge_overlapped_suffix.png)
 
-## DataFrame.merge 方法
+## DataFrame 实例的 merge 方法
 
-merge is a function in the pandas namespace, and it is also available as a DataFrame instance method merge(), with the calling DataFrame being implicitly considered the left object in the join.
+DataFrame 的实例对象也有一个 merge 方法，被调用的 DataFrame 会被当做合并的左对象，其它参数和 pandas.merge() 方法一样，功能也完全一致：
 
-## join 方法
+```python
+In [1]: left = pd.DataFrame({'key': ['K0', 'K1', 'K2', 'K3'],
+                             'A': ['A0', 'A1', 'A2', 'A3'],
+                             'B': ['B0', 'B1', 'B2', 'B3']})
 
-The related join() method, uses merge internally for the index-on-index (by default) and column(s)-on-index join. If you are joining on index only, you may wish to use DataFrame.join to save yourself some typing.
+In [2]: right = pd.DataFrame({'key': ['K0', 'K1', 'K2', 'K3'],
+                              'C': ['C0', 'C1', 'C2', 'C3'],
+                              'D': ['D0', 'D1', 'D2', 'D3']})
 
-DataFrame.join() 函数
+In [3]: left.merge(right, on='key')
+```
+
+![](/images/merging_merge_on_key.png)
+
+## DataFrame 实例的 join 方法
+
+DataFrame 的实例对象还有一个 join 方法，它是 merge 方法的简化版，简化之处在于**右侧 DataFrame 只有索引参与合并**，左侧 DataFrame 的连接键通过 on 参数指定。join 方法的参数包括：
+
+- other：右侧 DataFrame 或带名字的 Series 对象。
+- on：被调用 DataFrame 中用于连接的列名或索引名，用于和右侧 DataFrame 的索引进行合并。如果设置为多个值，则右侧 DataFrame 必须包含层次化索引。
+- hower：连接方式，可以是 left、right、outer 或 inner 之一，**与 merge 方法不同，这里默认为 left**。
+- lsuffix：字符串，用于追加到左侧重叠列名的末尾。
+- rsuffix：字符串，用于追加到右侧重叠列名的末尾。
+- sort：根据连接键对合并后的数据进行排序，默认为 True。
+
+join 方法可以和 merge 方法互相转化，参照下面例子中的注释：
 
 ```python
 In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2'],
@@ -304,18 +355,75 @@ In [2]: right = pd.DataFrame({'C': ['C0', 'C2', 'C3'],
                               index=['K0', 'K2', 'K3'])
 
 In [3]: result = left.join(right)
+# result = pd.merge(left, right, left_index=True, right_index=True, how='left')
 ```
 
 ![](/images/merging_join.png)
 
 ```python
 In [1]: result = left.join(right, how='outer')
+# result = pd.merge(left, right, left_index=True, right_index=True, how='outer')
 ```
 
 ![](/images/merging_join_outer.png)
 
 ```python
 In [1]: result = left.join(right, how='inner')
+# result = pd.merge(left, right, left_index=True, right_index=True, how='inner')
 ```
 
 ![](/images/merging_join_inner.png)
+
+通过 on 参数让列参与合并：
+
+```python
+In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2', 'A3'],
+                             'B': ['B0', 'B1', 'B2', 'B3'],
+                             'key': ['K0', 'K1', 'K0', 'K1']})
+
+In [2]: right = pd.DataFrame({'C': ['C0', 'C1'],
+                              'D': ['D0', 'D1']},
+                              index=['K0', 'K1'])
+    
+In [3]: result = left.join(right, on='key')
+# pd.merge(left, right, left_on='key', right_index=True, how='left')
+```
+
+![](/images/merging_merge_key_columns.png)
+
+```python
+In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2', 'A3'],
+                             'B': ['B0', 'B1', 'B2', 'B3'],
+                             'key1': ['K0', 'K0', 'K1', 'K2'],
+                             'key2': ['K0', 'K1', 'K0', 'K1']})
+
+In [2]: index = pd.MultiIndex.from_tuples([('K0', 'K0'), ('K1', 'K0'),
+                                           ('K2', 'K0'), ('K2', 'K1')])
+
+In [3]: right = pd.DataFrame({'C': ['C0', 'C1', 'C2', 'C3'],
+                              'D': ['D0', 'D1', 'D2', 'D3']},
+                              index=index)
+In [4]: result = left.join(right, on=['key1', 'key2'])
+# result = pd.merge(left, right, left_on=['key1', 'key2'], right_index=True, how='left')
+```
+
+![](/images/merging_join_multikeys.png)
+
+```python
+In [1]: left = pd.DataFrame({'A': ['A0', 'A1', 'A2'],
+                             'B': ['B0', 'B1', 'B2']},
+                             index=pd.Index(['K0', 'K1', 'K2'], name='key'))
+ 
+In [2]: index = pd.MultiIndex.from_tuples([('K0', 'Y0'), ('K1', 'Y1'),
+                                           ('K2', 'Y2'), ('K2', 'Y3')],
+                                           names=['key', 'Y'])
+
+In [3]: right = pd.DataFrame({'C': ['C0', 'C1', 'C2', 'C3'],
+                              'D': ['D0', 'D1', 'D2', 'D3']},
+                              index=index)
+
+In [4]: result = left.join(right, how='inner')
+# pd.merge(left, right, left_index=True, right_index=True, how='inner')
+```
+
+![](/images/merging_merge_multiindex_alternative.png)
